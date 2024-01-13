@@ -303,12 +303,18 @@ namespace RedSaw.CommandLineInterface{
     /// <summary>command creator</summary>
     static class CommandCreator{
 
-        /// <summary>collect all commands from execution position</summary>
+        /// <summary>collect all commands from custom position</summary>
         /// <returns>return all commands</returns>
         public static IEnumerable<Command> CollectCommands<T>() where T: CommandAttribute{
 
-            Type[] totalTypes = Assembly.GetExecutingAssembly().GetTypes();
-            RegisterParameterParsers(totalTypes);
+            string[] assemblyNames = CustomConfig.commandAssemblyNames;
+            List<Type> totalTypes = new List<Type>();
+            foreach (var assemblyName in assemblyNames)
+            {
+                Type[] types = Assembly.Load(assemblyName).GetTypes();
+                totalTypes.AddRange(types);
+            }
+            RegisterParameterParsers(totalTypes.ToArray());
             foreach(Type type in totalTypes){
                 MethodInfo[] methods = type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
                 if(methods.Length == 0)continue;
